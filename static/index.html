@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatbot pentru Afaceri Mici</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f6f6f6; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    #chat-box { width: 420px; background: white; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.08); overflow: hidden; }
+    #messages { height: 320px; padding: 16px; overflow-y: auto; }
+    .message { margin-bottom: 12px; }
+    .user { text-align: right; }
+    .bot { color: #0b4f6c; }
+    #input-area { display: flex; border-top: 1px solid #eee; }
+    #input-area input { flex: 1; padding: 12px; border: none; outline: none; }
+    #input-area button { padding: 12px 16px; border: none; background: #0b4f6c; color: white; cursor: pointer; }
+    #input-area button:hover { background: #0d6d8b; }
+  </style>
+</head>
+<body>
+  <div id="chat-box">
+    <div id="messages"></div>
+    <div id="input-area">
+      <input type="text" id="message-input" placeholder="Scrie mesajul aici" />
+      <button onclick="sendMessage()">Trimite</button>
+    </div>
+  </div>
+
+  <script>
+    const messagesEl = document.getElementById('messages');
+    const inputEl = document.getElementById('message-input');
+
+    function addMessage(text, role) {
+      const div = document.createElement('div');
+      div.className = `message ${role}`;
+      div.textContent = text;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+      addMessage(text, 'user');
+      inputEl.value = '';
+
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
+      });
+      const data = await response.json();
+      let reply = data.reply;
+
+      if (data.intent === 'booking' && data.requested_fields.length) {
+        reply += '\nPoți răspunde aici cu informațiile cerute.';
+      }
+
+      addMessage(reply, 'bot');
+    }
+  </script>
+</body>
+</html>
